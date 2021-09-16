@@ -14,7 +14,7 @@ Following Programs are supported
 - Mac: Terminal, iTerm (>=2.9), R GUI, RStudio Desktop, RStudio and Jupyter running on Chrome and Safari
 - Windows: Cmder, ConEmu, R GUI, RStudio Desktop
 - Linux: Tmux, Screen, Gnome-Terminal, Pantheon-Terminal, Mate-Terminal, Konsole, RStudio Desktop
-- Sublime Plugin: [Terminus](https://github.com/randy3k/Terminus)
+- Others: [Terminus](https://github.com/randy3k/Terminus), [TerminalView](https://github.com/Wramberg/TerminalView)
 
 ### Installation
 
@@ -57,9 +57,9 @@ There are two main keybindings:
 
    [IPython](https://ipython.org) (5.0 or above, or any repls which support bracketed paste mode) are assumed to be used.
 
-1. [radian](https://github.com/randy3k/radian) console
+1. [rtichoke](https://github.com/randy3k/rtichoke) console
 
-   You might want to turn on `bracketed_paste_mode` if [radian](https://github.com/randy3k/radian) is used.
+   You might want to turn on `bracketed_paste_mode` if [rtichoke](https://github.com/randy3k/rtichoke) is used.
 
 1. RStudio on Windows
     
@@ -145,21 +145,7 @@ The `prog` argument determines which program to use
 
 ### User settings
 
-A couple of settings can be found `Preferences: SendCode Settings`.
-Project-wise settings could also be specified in `sublime-project` as
-
-```js
-{
-    "settings": {
-        "SendCode": {
-            "prog": "terminus",
-            "r" : {
-                "bracketed_paste_mode": true
-            }
-        }
-    }
-}
-```
+A couple of settings can be found `Preferences: SendCode Settings`
 
 
 ### Block expansion
@@ -167,17 +153,7 @@ Project-wise settings could also be specified in `sublime-project` as
 SendCode uses the following logics to expand cursor when sending code.
 
 - Expand current line to match `()`, `[]` and `{}`.
-- R: 
-  - backward expand if the previous line ends with a pipe opeartor `%>%`
-  - `# %%` decorators
-  - `#+` spin decorators
-  - `#'` roxygen decorators
-- Julia
-  - `begin`, `end` indented pairs.
-  - `# %%` decorators
-- Python: 
-  - indentations
-  - `# %%` decorators.
-- (See the settings `block_start_pattern` and `block_end_pattern`)
-- Markdown fenced code blocks 
-  - put the cursor at the line of <kbd>\`\`\`</kbd> to send the whole block.
+- R: multiline code seperated by operators and knitr-spin `#+` decorators.
+- Julia: `# %%` decorators and `begin`, `end` indented pairs.
+- Python: indentations or `# %%`/`# In[]` decorators.
+- Markdown fenced code blocks of [Markdown Extended](https://github.com/jonschlinkert/sublime-markdown-extended) and [R Markdown](https://github.com/randy3k/R-Box): put the cursor at the line of <kbd>\`\`\`</kbd> to send the whole block.

@@ -3,6 +3,7 @@ import sublime
 
 class Settings:
     scope_mapping = {
+        "source.sql": "sql",
         "source.r": "r",
         "text.tex.latex.rsweave": "rnw",
         "text.html.markdown.rmarkdown": "rmd",
@@ -24,6 +25,8 @@ class Settings:
         pt = self.view.line(pt).begin()
         scores = [self.view.score_selector(pt, s) for s, lang in self.scope_mapping.items()]
         max_score = max(scores)
+        if self.view.score_selector(pt, "text.html.markdown.rmarkdown") > 0:
+            return 'rmd'
         if max_score > 0:
             return list(self.scope_mapping.values())[scores.index(max_score)]
         else:
@@ -32,25 +35,15 @@ class Settings:
     def get(self, key, default=None):
         syntax = self.syntax()
 
-        settings_list = [self.s]
+        #  check syntax settings
+        if syntax:
+            syntax_settings = self.s.get(syntax, {})
+            if key in syntax_settings:
+                return syntax_settings[key]
 
-        window = sublime.active_window()
-        if window:
-            project_data = window.project_data() or {}
-            project_settings = project_data.get("settings", {}).get("SendCode", {})
-            if project_settings:
-                settings_list.insert(0, project_settings)
-
-        for settings in settings_list:
-            #  check syntax settings
-            if syntax:
-                syntax_settings = settings.get(syntax, {})
-                if key in syntax_settings:
-                    return syntax_settings[key]
-
-            # check global settings
-            if settings.get(key, None) is not None:
-                return settings.get(key)
+        # check global settings
+        if self.s.has(key) and self.s.get(key) is not None:
+            return self.s.get(key)
 
         # fallback
         return default
@@ -58,34 +51,28 @@ class Settings:
     def set(self, key, value):
         syntax = self.syntax()
 
-        window = sublime.active_window()
-        if window:
-            project_data = window.project_data() or {}
-            project_settings = project_data.get("settings", {}).get("SendCode", {})
-
-            if key == "prog" and key in project_settings:
-                project_settings[key] = value
-
-            if syntax:
-                syntax_settings = project_settings.get(syntax, {})
-                if key in syntax_settings:
-                    syntax_settings[key] = value
-                    window.set_project_data(project_data)
-                    return
-            if key in project_settings:
-                project_settings[key] = value
-                window.set_project_data(project_data)
-                return
-
         #  check syntax settings
-        if key == "prog":
-            self.s.set(key, value)
-
         if syntax:
             syntax_settings = self.s.get(syntax, {})
             syntax_settings[key] = value
             self.s.set(syntax, syntax_settings)
         else:
             self.s.set(key, value)
+
+        if key == "prog":
+            self.s.set(key, value)
+
+        sublime.save_settings('SendCode.sublime-settings')
+
+    def erase(self, key):
+        syntax = self.syntax()
+
+        #  check syntax settings
+        if syntax and self.s.get(syntax):
+            syntax_settings = self.s.get(syntax)
+            syntax_settings.pop(key, None)
+            self.s.set(syntax, syntax_settings)
+        else:
+            self.s.erase(key)
 
         sublime.save_settings('SendCode.sublime-settings')

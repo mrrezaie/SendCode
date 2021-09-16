@@ -1,31 +1,34 @@
 {
-    "prog": "terminal",
+    "prog": "terminus",
     "auto_expand_line": true,
     "auto_advance" : true,
     "auto_advance_non_empty": false,
-    "bracketed_paste_mode": false,
-    "block_start_pattern": "# ?%%|# ?\\+|# In \\[",
-    "block_end_pattern": "# ?%%|# ?\\+|#'|# In \\[",
+    "bracketed_paste_mode": true,
 
     "r" : {
-        "prog": "terminal",
-        // turn bracketed_paste_mode on if radian or readline 7.0 is in use
-        "bracketed_paste_mode": false
+        "prog": "terminus",
+        // turn brackted paste mode on if rtichoke or readline 7.0 is used
+        "bracketed_paste_mode": true
     },
 
     "rmd" : {
-        "prog": "terminal",
-        // turn bracketed_paste_mode on if radian or readline 7.0 is in use
-        "bracketed_paste_mode": false
+        "prog": "terminus",
+        // turn brackted paste mode on if rtichoke or readline 7.0 is used
+        "bracketed_paste_mode": true
     },
 
     "python" : {
-        "prog": "terminal",
+        "prog": "terminus",
         "bracketed_paste_mode": true
     },
 
     "julia" : {
-        "prog": "terminal",
+        "prog": "terminus",
+        "bracketed_paste_mode": true
+    },
+
+    "markdown" : {
+        "prog": "terminus",
         "bracketed_paste_mode": true
     }
 

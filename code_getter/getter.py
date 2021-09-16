@@ -1,66 +1,60 @@
 import sublime
 import re
-import os
 from ..settings import Settings
 
+COMMENTED_OPERATOR = r'^\s*#.*(%>% *|\+ *)$'
 
-def escape_dquote(cmd):
-    cmd = cmd.replace('\\', '\\\\')
-    cmd = cmd.replace('"', '\\"')
-    return cmd
-
-
-def escape_squote(cmd):
-    cmd = cmd.replace('\\', '\\\\')
-    cmd = cmd.replace("\'", "\'")
-    return cmd
-
-
-PATTERN = re.compile(r"""
-    (?P<quote>["'])
-    (?P<quoted_var>
-        \$ (?: [_a-z][_a-z0-9]*  | \{[^}]*\} )
-    )
-    (?P=quote)
-    |
-    (?P<var>
-        \$ (?: [_a-z][_a-z0-9]*  | \{[^}]*\} )
-    )
-""", re.VERBOSE)
-
+def find_surround(view, sel, pattern):
+    regions = view.find_all(pattern)
+    start = 0
+    for i in range(len(regions)):
+        end = regions[i].begin()
+        if start <= sel.begin() and end >= sel.end():
+            break
+        start = regions[i].begin()
+    else:  # no pattern occurrence after sel, go to end of file
+        end = view.size()
+    # if start > 0:
+    #     start = view.find('\n+', start).end()        
+    return sublime.Region(start, end)
 
 class CodeGetter:
 
-    def __init__(self, view):
+    def __init__(self, view, advance, cell, setup=False):
         self.view = view
+        self.auto_advance = advance
+        self.cell = cell
+        self.setup = setup
         self.settings = Settings(view)
         self.auto_expand_line = self.settings.get("auto_expand_line", True)
-        self.auto_advance = self.settings.get("auto_advance", True)
         self.auto_advance_non_empty = self.settings.get("auto_advance_non_empty", False)
-        self.block_start_pattern = self.settings.get("block_start_pattern", "# %%")
-        self.block_end_pattern = self.settings.get("block_end_pattern", "# %%")
 
     @classmethod
-    def initialize(cls, view):
+    def initialize(cls, view, *args, **kwargs):
         syntax = Settings(view).syntax()
         if syntax == "r":
-            return RCodeGetter(view)
+            return RCodeGetter(view, *args, **kwargs)
         elif syntax == "md":
-            return MarkDownCodeGetter(view)
+            return MarkDownCodeGetter(view, *args, **kwargs)
         elif syntax == "rmd":
-            return RMarkDownCodeGetter(view)
+            return RMarkDownCodeGetter(view, *args, **kwargs)
         elif syntax == "python":
-            return PythonCodeGetter(view)
+            return PythonCodeGetter(view, *args, **kwargs)
         elif syntax == "julia":
-            return JuliaCodeGetter(view)
+            return JuliaCodeGetter(view, *args, **kwargs)
         else:
-            return CodeGetter(view)
+            return CodeGetter(view, *args, **kwargs)
 
     def expand_cursor(self, s):
         s = self.view.line(s)
+        if self.cell:
+            return self.expand_cell(s)
         if self.auto_expand_line:
             s = self.expand_line(s)
         return s
+
+    def expand_cell(self, s):
+        return find_surround(self.view, s, '# %%')
 
     def expand_line(self, s):
         return s
@@ -77,7 +71,7 @@ class CodeGetter:
                 pt = view.text_point(view.rowcol(nextpt.begin())[0], 0)
         view.sel().add(sublime.Region(pt, pt))
 
-    def get_code(self):
+    def get_text(self):
         view = self.view
         cmd = ''
         moved = False
@@ -96,47 +90,28 @@ class CodeGetter:
         if moved:
             view.show(view.sel())
 
+        if self.cell and isinstance(self, JuliaCodeGetter):
+            cmd = cmd.strip()
+            suffix = ';' if cmd.endswith(';') else ''
+            cmd = 'begin\n' + cmd + '\nend' + suffix
+
+        if self.cell and isinstance(self, PythonCodeGetter):
+            try:
+                i = cmd.index('%%R')
+                cmd = cmd[i:]
+            except ValueError:
+                pass
+
         return cmd
 
-    def get_code_above(self):
-        line = int(self.get_line())
-        if not line or line <= 1:
-            return
-        view = self.view
-        region = sublime.Region(0, view.line(view.text_point(line - 2, 0)).end())
-        return view.substr(region)
-
-    def get_selection(self):
-        view = self.view
-        word = view.substr(view.sel()[0])
-        if not word:
-            word = view.substr(view.word(view.sel()[0].begin()))
-        return word
-
-    def get_line(self):
-        view = self.view
-        if len(view.sel()) == 1:
-            row, _ = view.rowcol(view.sel()[0].begin())
-            return str(row + 1)
-
-    def get_current_folder(self):
-        view = self.view
-        fname = view.file_name()
-        window = view.window()
-        if fname:
-            fname = os.path.realpath(fname)
-            for folder in window.folders():
-                if fname.startswith(os.path.realpath(folder) + os.sep):
-                    return folder
-
-    def find_inline(self, pattern, pt, scope="-string, -comment"):
+    def find_inline(self, pattern, pt):
         while True:
             result = self.view.find(pattern, pt)
             if result.begin() == -1 or \
                     self.view.rowcol(result.begin())[0] != self.view.rowcol(pt)[0]:
                 return sublime.Region(-1, -1)
             else:
-                if self.view.score_selector(result.begin(), scope):
+                if not self.view.score_selector(result.begin(), "string, comment"):
                     return result
                 else:
                     pt = result.end()
@@ -149,12 +124,7 @@ class CodeGetter:
             line = self.view.line(self.view.text_point(row, 0))
             pt = line.begin()
             while paren:
-                # there is a bug in the R syntax of early ST release (see #125)
-                if sublime.version() >= '4000':
-                    res = self.find_inline(r"[{}\[\]()]", pt, scope="punctuation")
-                else:
-                    res = self.find_inline(r"[{}\[\]()]", pt)
-
+                res = self.find_inline(r"[{}\[\]()]", pt)
                 if res.begin() == -1:
                     break
                 if self.view.substr(res) in ["{", "[", "("]:
@@ -170,6 +140,10 @@ class CodeGetter:
                     s = sublime.Region(s.begin(), line.end())
                     break
                 else:
+                    if re.match(COMMENTED_OPERATOR, self.view.substr(line)):
+                        row = row + 1
+                        continue
+                    
                     res = self.find_inline(pattern, pt)
                     if res.begin() != -1 and \
                             self.view.score_selector(res.begin(), scope):
@@ -191,7 +165,10 @@ class CodeGetter:
             row = row - 1
             line = view.line(view.text_point(row, 0))
             if re.search(pattern, view.substr(line)):
-                endpt = self.find_inline(r"\S(?=\s*$)", line.begin()).begin()
+                if re.match(COMMENTED_OPERATOR, view.substr(line)):
+                    s = line
+                    continue
+                endpt = self.find_inline(r"\S(?=(\s*$)|(\s*#.*$))", line.begin()).begin()
                 if endpt != -1 and self.view.score_selector(endpt, scope):
                     s = line
                     continue
@@ -199,19 +176,25 @@ class CodeGetter:
 
         return s
 
-    def block_expand(self, s):
-        # expand block based on block_start_pattern and block_end_pattern
+class RCodeGetter(CodeGetter):
+
+    def expand_line(self, s):
         view = self.view
+        if view.score_selector(s.begin(), "string"):
+            return s
+
+        s = self.backward_expand(s, r"(^\s*#.*$)|([+\-*\/]|%[+<>$:a-zA-Z]+%)(?=(\s*$)|(\s*#.*$))")
+
         thiscmd = view.substr(s)
         row = view.rowcol(s.begin())[0]
         lastrow = view.rowcol(view.size())[0]
-        if re.match(self.block_start_pattern, thiscmd):
+        if re.match(r"#\+", thiscmd):
             prevline = view.line(s.begin())
             while row < lastrow:
                 row = row + 1
                 line = view.line(view.text_point(row, 0))
                 line_content = view.substr(line)
-                m = re.match(self.block_end_pattern, line_content)
+                m = re.match(r"#'|#\+", line_content)
                 if m:
                     s = sublime.Region(s.begin(), prevline.end())
                     break
@@ -221,58 +204,10 @@ class CodeGetter:
             if row == lastrow:
                 s = sublime.Region(s.begin(), prevline.end())
 
+        else:
+            s = self.forward_expand(s, pattern=r"(^\s*#.*$)|([+\-*/]|%[+<>$:a-zA-Z]+%)(?=(\s*$)|(\s*#.*$))")
+
         return s
-
-    def resolve(self, code):
-        view = self.view
-        window = view.window()
-        extracted_variables = window.extract_variables()
-
-        variable_getter = {
-            "line": self.get_line,
-            "selection": self.get_selection,
-            "current_folder": self.get_current_folder
-        }
-
-        for v, getter in variable_getter.items():
-            value = getter()
-            if value is not None:
-                extracted_variables[v] = value
-
-        def convert(m):
-            quote = m.group("quote")
-            var = m.group("quoted_var") if quote else m.group("var")
-            if var == "$code_above":
-                var = self.get_code_above()
-            else:
-                var = sublime.expand_variables(var, extracted_variables)
-
-            if quote == "'":
-                return "'" + escape_squote(var) + "'"
-            elif quote == '"':
-                return '"' + escape_dquote(var) + '"'
-            else:
-                return var
-
-        code = PATTERN.sub(convert, code)
-
-        return code
-
-
-class RCodeGetter(CodeGetter):
-
-    def expand_line(self, s):
-        view = self.view
-        if view.score_selector(s.begin(), "string"):
-            return s
-
-        s = self.backward_expand(s, r"([+\-*/]|%[+<>$:a-zA-Z]+%)(?=\s*$)")
-
-        s_block = self.block_expand(s)
-        if s_block != s:
-            return s_block
-
-        return self.forward_expand(s, pattern=r"([+\-*/]|%[+<>$:a-zA-Z]+%)(?=\s*$)")
 
     def substr(self, s):
         view = self.view
@@ -304,16 +239,25 @@ class PythonCodeGetter(CodeGetter):
         view = self.view
         if view.score_selector(s.begin(), "string"):
             return s
-
-        s_block = self.block_expand(s)
-        if s_block != s:
-            return s_block
-
         thiscmd = view.substr(s)
         row = view.rowcol(s.begin())[0]
         prevline = view.line(s.begin())
         lastrow = view.rowcol(view.size())[0]
-        if re.match(r"[ \t]*\S", thiscmd):
+        if re.match(r"^(#\s%%|#%%|# In\[)", thiscmd):
+            while row < lastrow:
+                row = row + 1
+                line = view.line(view.text_point(row, 0))
+                m = re.match(r"^(#\s%%|#%%|# In\[)", view.substr(line))
+                if m:
+                    s = sublime.Region(s.begin(), prevline.end())
+                    break
+                elif len(view.substr(line).strip()) > 0:
+                    prevline = line
+
+            if row == lastrow:
+                s = sublime.Region(s.begin(), prevline.end())
+
+        elif re.match(r"[ \t]*\S", thiscmd):
             indentation = re.match(r"[ \t]*", thiscmd).group(0)
             while row < lastrow:
                 res = self.forward_expand(view.line(view.text_point(row, 0)), pattern=None)
@@ -344,22 +288,32 @@ class JuliaCodeGetter(CodeGetter):
         view = self.view
         if view.score_selector(s.begin(), "string"):
             return s
-
-        s_block = self.block_expand(s)
-        if s_block != s:
-            return s_block
-
         thiscmd = view.substr(s)
         row = view.rowcol(s.begin())[0]
+        prevline = view.line(s.begin())
         lastrow = view.rowcol(view.size())[0]
 
         keywords = [
             "function", "macro", "if", "for", "while", "try", "module",
-            "abstruct", "type", "struct", "immutable", "mutable"
+            "abstruct", "type", "struct", "immutable", "mutable",
         ]
-        if (re.match(r"\s*\b(?:{})\b".format("|".join(keywords)), thiscmd) and
+
+        if re.match(r"^(#\s%%|#%%)", thiscmd):
+            while row < lastrow:
+                row = row + 1
+                line = view.line(view.text_point(row, 0))
+                m = re.match(r"^(#\s%%|#%%)", view.substr(line))
+                if m:
+                    s = sublime.Region(s.begin(), prevline.end())
+                    break
+                else:
+                    prevline = line
+
+            if row == lastrow:
+                s = sublime.Region(s.begin(), prevline.end())
+        elif (re.match(r"(@\w+)?\s*\b(?:{})\b".format("|".join(keywords)), thiscmd) and
                 not re.match(r".*\bend\b\s*$", thiscmd)) or \
-                (re.match(r".*\b(?:begin|let|quote)\b\s*", thiscmd)):
+                (re.match(r".*\b(?:begin|do|let|quote)\b\s*", thiscmd)):
             indentation = re.match(r"^(\s*)", thiscmd).group(1)
             endline = view.find(r"^" + indentation + r"\bend\b", s.begin())
             s = sublime.Region(s.begin(), view.line(endline.end()).end())
@@ -404,9 +358,18 @@ class MarkDownCodeGetter(CodeGetter):
             s = sublime.Region(s.end() + 1, end.begin() - 1)
         return s
 
-    def get_code_above(self):
-        pass
 
+class RMarkDownCodeGetter(RCodeGetter):
+    def expand_cell(self, s):
+        if self.setup:
+            start = self.view.find(r'```{r setup.*}\n', 0).b
+            end = self.view.find(r'\n```', start).a
+            return sublime.Region(start, end)
 
-class RMarkDownCodeGetter(MarkDownCodeGetter):
-    pass
+        s = find_surround(self.view, s, '^```')
+        # start = self.view.find('\n', s.begin()).begin()+1
+        start = s.begin()
+        # print('line', self.view.substr(self.view.line(start)))
+        # print('||', self.view.substr(sublime.Region(start, s.end()-1)), '||', sep='')
+        return sublime.Region(start, s.end()-1)
+        # return s

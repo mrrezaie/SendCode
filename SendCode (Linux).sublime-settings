@@ -4,18 +4,16 @@
     "auto_advance" : true,
     "auto_advance_non_empty": false,
     "bracketed_paste_mode": false,
-    "block_start_pattern": "# ?%%|# ?\\+|# In \\[",
-    "block_end_pattern": "# ?%%|# ?\\+|#'|# In \\[",
 
     "r" : {
         "prog": "tmux",
-        // turn bracketed_paste_mode on if radian or readline 7.0 is in use
+        // turn brackted paste mode on if rtichoke or readline 7.0 is used
         "bracketed_paste_mode": false
     },
 
     "rmd" : {
         "prog": "tmux",
-        // turn bracketed_paste_mode on if radian or readline 7.0 is in use
+        // turn brackted paste mode on if rtichoke or readline 7.0 is used
         "bracketed_paste_mode": false
     },
 

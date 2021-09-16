@@ -17,8 +17,8 @@ def send_to_tmux(cmd, tmux="tmux", bracketed=False, commit=True):
         subprocess.check_call([tmux, 'set-buffer', "\x1b[201~"])
         subprocess.check_call([tmux, 'paste-buffer', '-d'])
         if commit:
-            _send_to_tmux("\r", tmux)
+            _send_to_tmux("\n", tmux)
     else:
         if commit and cmd != "\x04":
-            cmd = cmd + "\r"
+            cmd = cmd + "\n"
         _send_to_tmux(cmd, tmux)

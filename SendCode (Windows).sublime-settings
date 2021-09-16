@@ -4,29 +4,22 @@
     "auto_advance" : true,
     "auto_advance_non_empty": false,
     "bracketed_paste_mode": false,
-    "block_start_pattern": "# ?%%|# ?\\+|# In \\[",
-    "block_end_pattern": "# ?%%|# ?\\+|#'|# In \\[",
 
     "r" : {
         "prog": "cmder",
-        // turn bracketed_paste_mode on if you are sending code to remote server
-        // AND when radian or readline 7.0 is in use
+        // turn brackted paste mode on if rtichoke or readline 7.0 is used
         "bracketed_paste_mode": false
     },
 
     "rmd" : {
         "prog": "cmder",
-        // turn bracketed_paste_mode on if radian or readline 7.0 is in use
+        // turn brackted paste mode on if rtichoke or readline 7.0 is used
         "bracketed_paste_mode": false
     },
 
     "python" : {
         "prog": "cmder",
-        "bracketed_paste_mode": true,
-        // paste clipboard to cmder/conemu and terminus assuming that
-        // local ipython is in use
-        // you'll need to turn this off if you are sending code to remote server
-        "paste_to_console": true
+        "bracketed_paste_mode": true
     },
 
     "julia" : {
