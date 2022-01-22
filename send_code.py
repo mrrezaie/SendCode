@@ -111,10 +111,9 @@ class SendCodeCommand(sublime_plugin.TextCommand):
                     cmd = CodeGetter.initialize(self.view, advance=False, cell=False).get_text()
 
                 if cell_cmd.startswith('```{r'):
-                    should_plot = (
-                        (re.search(r'fig\.width', cmd, re.MULTILINE) is not None) or
-                        (('plot' in cmd and '#noplot' not in cmd) and 
-                         (re.search(r'^\s*fig\(', cmd, re.MULTILINE) is None))
+                    should_plot = '#noplot' not in cmd and (
+                        (re.search(r'```{r,.*fig\.width', cmd) is not None) or 
+                        (('plot' in cmd) and (re.search(r'^\s*fig\(', cmd, re.MULTILINE) is None))
                     )
                     if should_plot:
                         # save the figure using praams pulled from cell header
