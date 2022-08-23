@@ -156,7 +156,7 @@ class CodeGetter:
 
         return s
 
-    def backward_expand(self, s, pattern=r"[+\-*/](?=\s*$)", scope="keyword.operator"):
+    def backward_expand(self, s, pattern=r"[+\-*/](?=\s*$)", scope="keyword.operator", indent=0):
         # backward_expand previous lines ending with operators
 
         view = self.view
@@ -164,6 +164,10 @@ class CodeGetter:
         while row > 0:
             row = row - 1
             line = view.line(view.text_point(row, 0))
+            this_indent = len(view.substr(line)) - len(view.substr(line).lstrip(' '))
+            if indent > 0 and this_indent > 0:
+                s = line
+                continue
             if re.search(pattern, view.substr(line)):
                 if re.match(COMMENTED_OPERATOR, view.substr(line)):
                     s = line
@@ -176,6 +180,7 @@ class CodeGetter:
 
         return s
 
+
 class RCodeGetter(CodeGetter):
 
     def expand_line(self, s):
@@ -183,9 +188,11 @@ class RCodeGetter(CodeGetter):
         if view.score_selector(s.begin(), "string"):
             return s
 
-        s = self.backward_expand(s, r"(^\s*#.*$)|([+\-*\/]|%[+<>$:a-zA-Z]+%)(?=(\s*$)|(\s*#.*$))")
-
         thiscmd = view.substr(s)
+        indent = len(thiscmd) - len(thiscmd.lstrip(' '))
+
+        s = self.backward_expand(s, r"(^\s*#.*$)|([+\-*\/]|%[+<>$:a-zA-Z]+%)(?=(\s*$)|(\s*#.*$))", indent=indent)        
+
         row = view.rowcol(s.begin())[0]
         lastrow = view.rowcol(view.size())[0]
         if re.match(r"#\+", thiscmd):

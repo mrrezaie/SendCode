@@ -42,8 +42,8 @@ def maybe_match(regex, string, default):
 def parse_chunk_header(cmd):
     return (
         maybe_match(r'```{r (\S+)[,}]', cmd, 'tmp'),
-        maybe_match(r'fig\.width *= *([.\w]+)', cmd, 5),
-        maybe_match(r'fig\.height *= *([.\w]+)', cmd, 4),
+        maybe_match(r'fig\.width *= *([^,}]+)', cmd, 5),
+        maybe_match(r'fig\.height *= *([^,}]+)', cmd, 4),
     )
 
 class SendCodeCommand(sublime_plugin.TextCommand):
