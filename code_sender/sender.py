@@ -46,7 +46,9 @@ class CodeSender:
         send_to_terminal(cmd, bracketed=self.bracketed_paste_mode)
 
     def send_to_iterm(self, cmd):
-        send_to_iterm(cmd, bracketed=self.bracketed_paste_mode)
+        print("SENDING TO ITERM")
+        self.view.window().run_command("term_send_text", {"text": cmd})
+        # send_to_iterm(cmd, bracketed=self.bracketed_paste_mode)
 
     def send_to_conemu(self, cmd):
         conemuc = self.settings.get("conemuc")
@@ -165,16 +167,20 @@ class PythonCodeSender(CodeSender):
 
     def send_to_iterm(self, cmd):
         if len(re.findall("\n", cmd)) > 0:
-            if self.bracketed_paste_mode:
-                send_to_iterm(cmd, bracketed=True, commit=False)
-                time.sleep(0.01)
-                send_to_iterm("\x1B", bracketed=False)
-            else:
-                send_to_iterm(r"%cpaste -q")
-                send_to_iterm(cmd)
-                send_to_iterm("--")
-        else:
-            send_to_iterm(cmd)
+            cmd = "\x1b[200~" + cmd + "\n\x1b[201~"
+        self.view.window().run_command("term_send_text", {"text": cmd})
+    # def send_to_iterm(self, cmd):
+    #     if len(re.findall("\n", cmd)) > 0:
+    #         if self.bracketed_paste_mode:
+    #             send_to_iterm(cmd, bracketed=True, commit=False)
+    #             time.sleep(0.01)
+    #             send_to_iterm("\x1B", bracketed=False)
+    #         else:
+    #             send_to_iterm(r"%cpaste -q")
+    #             send_to_iterm(cmd)
+    #             send_to_iterm("--")
+    #     else:
+    #         send_to_iterm(cmd)
 
     def send_to_conemu(self, cmd):
         conemuc = self.settings.get("conemuc")
