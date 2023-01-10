@@ -46,9 +46,9 @@ class CodeSender:
         send_to_terminal(cmd, bracketed=self.bracketed_paste_mode)
 
     def send_to_iterm(self, cmd):
-        print("SENDING TO ITERM")
+        if len(re.findall("\n", cmd)) > 0:
+            cmd = "\x1b[200~" + cmd + "\x1b[201~"
         self.view.window().run_command("term_send_text", {"text": cmd})
-        # send_to_iterm(cmd, bracketed=self.bracketed_paste_mode)
 
     def send_to_conemu(self, cmd):
         conemuc = self.settings.get("conemuc")
@@ -126,28 +126,29 @@ class CodeSender:
 
 
 class RCodeSender(CodeSender):
+    pass
 
-    def send_text(self, cmd):
-        cmd = cmd.rstrip()
-        cmd = cmd.expandtabs(self.view.settings().get("tab_size", 4))
-        prog = self.prog.lower()
-        if prog == "r":
-            self.send_to_r(cmd)
-        elif prog == "chrome-rstudio":
-            self.send_to_chrome_rstudio(cmd)
-        elif prog == "safari-rstudio":
-            self.send_to_safari_rstudio(cmd)
-        else:
-            super(RCodeSender, self).send_text(cmd)
+#     def send_text(self, cmd):
+#         cmd = cmd.rstrip()
+#         cmd = cmd.expandtabs(self.view.settings().get("tab_size", 4))
+#         prog = self.prog.lower()
+#         if prog == "r":
+#             self.send_to_r(cmd)
+#         elif prog == "chrome-rstudio":
+#             self.send_to_chrome_rstudio(cmd)
+#         elif prog == "safari-rstudio":
+#             self.send_to_safari_rstudio(cmd)
+#         else:
+#             super(RCodeSender, self).send_text(cmd)
 
-    def send_to_r(self, cmd):
-        send_to_r(cmd)
+#     def send_to_r(self, cmd):
+#         send_to_r(cmd)
 
-    def send_to_chrome_rstudio(self, cmd):
-        send_to_chrome_rstudio(cmd)
+#     def send_to_chrome_rstudio(self, cmd):
+#         send_to_chrome_rstudio(cmd)
 
-    def send_to_safari_rstudio(self, cmd):
-        send_to_safari_rstudio(cmd)
+#     def send_to_safari_rstudio(self, cmd):
+#         send_to_safari_rstudio(cmd)
 
 
 class PythonCodeSender(CodeSender):
@@ -169,6 +170,11 @@ class PythonCodeSender(CodeSender):
         if len(re.findall("\n", cmd)) > 0:
             cmd = "\x1b[200~" + cmd + "\n\x1b[201~"
         self.view.window().run_command("term_send_text", {"text": cmd})
+
+    # def send_to_iterm(self, cmd):
+    #     if len(re.findall("\n", cmd)) > 0:
+    #         cmd = "\x1b[200~" + cmd + "\n\x1b[201~"
+    #     self.view.window().run_command("term_send_text", {"text": cmd})
     # def send_to_iterm(self, cmd):
     #     if len(re.findall("\n", cmd)) > 0:
     #         if self.bracketed_paste_mode:

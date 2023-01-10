@@ -54,7 +54,10 @@ class CodeGetter:
         return s
 
     def expand_cell(self, s):
-        return find_surround(self.view, s, '# %%')
+        if self.setup:
+            return find_surround(self.view, sublime.Region(0, 0), '# %%')
+        else:
+            return find_surround(self.view, s, '# %%')
 
     def expand_line(self, s):
         return s
@@ -94,6 +97,9 @@ class CodeGetter:
             cmd = cmd.strip()
             suffix = ';' if cmd.endswith(';') else ''
             cmd = 'begin\n' + cmd + '\nend' + suffix
+
+        if isinstance(self, JuliaCodeGetter):
+            cmd = cmd.strip()
 
         if self.cell and isinstance(self, PythonCodeGetter):
             try:
