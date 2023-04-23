@@ -1,34 +1,34 @@
 {
-    "prog": "terminus",
+    "prog": "iterm",
     "auto_expand_line": true,
     "auto_advance" : true,
     "auto_advance_non_empty": false,
     "bracketed_paste_mode": true,
 
     "r" : {
-        "prog": "terminus",
+        "prog": "iterm",
         // turn brackted paste mode on if rtichoke or readline 7.0 is used
         "bracketed_paste_mode": true
     },
 
     "rmd" : {
-        "prog": "terminus",
+        "prog": "iterm",
         // turn brackted paste mode on if rtichoke or readline 7.0 is used
         "bracketed_paste_mode": true
     },
 
     "python" : {
-        "prog": "terminus",
+        "prog": "iterm",
         "bracketed_paste_mode": true
     },
 
     "julia" : {
-        "prog": "terminus",
+        "prog": "iterm",
         "bracketed_paste_mode": true
     },
 
     "markdown" : {
-        "prog": "terminus",
+        "prog": "iterm",
         "bracketed_paste_mode": true
     }
 
