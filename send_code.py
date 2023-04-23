@@ -31,7 +31,6 @@ PATTERN = re.compile(r"""
     )
 """, re.VERBOSE)
 
-
 def maybe_match(regex, string, default):
     match = re.search(regex, string)
     if match is not None:
@@ -42,8 +41,8 @@ def maybe_match(regex, string, default):
 def parse_chunk_header(cmd):
     return (
         maybe_match(r'```{r (\S+)[,}]', cmd, 'tmp'),
-        maybe_match(r'fig\.width *= *([^,}]+)', cmd, 5),
-        maybe_match(r'fig\.height *= *([^,}]+)', cmd, 4),
+        maybe_match(r'fig\.width *= *([^,}]+)', cmd, 4.5),
+        maybe_match(r'fig\.height *= *([^,}]+)', cmd, 3),
     )
 
 class SendCodeCommand(sublime_plugin.TextCommand):
@@ -86,6 +85,7 @@ class SendCodeCommand(sublime_plugin.TextCommand):
 
     def run(self, edit, advance=None, cell=False, cmd=None, prog=None, confirmation=None,
             prefix="", postfix="", setup=False):
+        print('SendCode.run', prefix, postfix)
         
         if advance is None:
             advance = Settings(self.view).get("auto_advance", True)
@@ -131,7 +131,7 @@ class SendCodeCommand(sublime_plugin.TextCommand):
 
 
             else:
-                getter = CodeGetter.initialize(self.view, advance=advance, cell=cell)
+                getter = CodeGetter.initialize(self.view, advance=advance, cell=cell, setup=setup)
                 cmd = getter.get_text()
 
         if postfix:
