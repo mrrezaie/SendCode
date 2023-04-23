@@ -15,7 +15,7 @@ def find_surround(view, sel, pattern):
     else:  # no pattern occurrence after sel, go to end of file
         end = view.size()
     # if start > 0:
-    #     start = view.find('\n+', start).end()        
+    #     start = view.find('\n+', start).end()
     return sublime.Region(start, end)
 
 class CodeGetter:
@@ -35,6 +35,7 @@ class CodeGetter:
         if syntax == "r":
             return RCodeGetter(view, *args, **kwargs)
         elif syntax == "md":
+            # return None
             return MarkDownCodeGetter(view, *args, **kwargs)
         elif syntax == "rmd":
             return RMarkDownCodeGetter(view, *args, **kwargs)
@@ -149,7 +150,7 @@ class CodeGetter:
                     if re.match(COMMENTED_OPERATOR, self.view.substr(line)):
                         row = row + 1
                         continue
-                    
+
                     res = self.find_inline(pattern, pt)
                     if res.begin() != -1 and \
                             self.view.score_selector(res.begin(), scope):
@@ -189,8 +190,18 @@ class CodeGetter:
 
 class RCodeGetter(CodeGetter):
 
+    def expand_rcall(self, s):
+        print('expand_rcall', s)
+        s = self.view.expand_to_scope(s.begin(), 'rcall.julia')
+        print('expand_rcall', s)
+        return s
+
     def expand_line(self, s):
+
         view = self.view
+        if view.score_selector(s.begin(), "rcall.julia"):
+            return self.expand_rcall(s)
+
         if view.score_selector(s.begin(), "string"):
             return s
 
