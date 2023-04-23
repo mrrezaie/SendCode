@@ -42,87 +42,20 @@ class CodeSender:
         else:
             return CodeSender(view, **kwargs)
 
-    def send_to_terminal(self, cmd):
-        send_to_terminal(cmd, bracketed=self.bracketed_paste_mode)
-
-    def send_to_iterm(self, cmd):
+    def send_to_iterm(self, cmd, prefix="", postfix=""):
         if len(re.findall("\n", cmd)) > 0:
             cmd = "\x1b[200~" + cmd + "\x1b[201~"
-        self.view.window().run_command("term_send_text", {"text": cmd})
+        cmd = prefix + cmd + postfix
+        print(cmd)
 
-    def send_to_conemu(self, cmd):
-        conemuc = self.settings.get("conemuc")
-        send_to_conemu(cmd, conemuc, bracketed=self.bracketed_paste_mode)
+        self.view.window().run_command("term_send_text",
+            {"text": cmd, "end": "" if postfix else "\n"})
 
-    def send_to_cmder(self, cmd):
-        conemuc = self.settings.get("conemuc")
-        send_to_cmder(cmd, conemuc, bracketed=self.bracketed_paste_mode)
-
-    def send_to_linux_terminal(self, cmd):
-        linux_terminal = self.settings.get("linux_terminal")
-        send_to_linux_terminal(linux_terminal, cmd)
-
-    def send_to_tmux(self, cmd):
-        tmux = self.settings.get("tmux", "tmux")
-        send_to_tmux(cmd, tmux, bracketed=self.bracketed_paste_mode)
-
-    def send_to_screen(self, cmd):
-        screen = self.settings.get("screen", "screen")
-        send_to_screen(cmd, screen, bracketed=self.bracketed_paste_mode)
-
-    def send_to_chrome_jupyter(self, cmd):
-        send_to_chrome_jupyter(cmd)
-
-    def send_to_safari_jupyter(self, cmd):
-        send_to_safari_jupyter(cmd)
-
-    def send_to_sublimerepl(self, cmd):
-        send_to_sublimerepl(cmd)
-
-    def send_to_terminalview(self, cmd):
-        send_to_terminalview(cmd, bracketed=self.bracketed_paste_mode)
-
-    def send_to_terminus(self, cmd):
-        send_to_terminus(cmd, bracketed=self.bracketed_paste_mode)
-
-    def send_to_rstudio(self, cmd):
-        if sublime.platform() == "windows":
-            send_to_rstudio(cmd, from_view=self.from_view)
-        else:
-            send_to_rstudio(cmd)
-
-    def send_text(self, cmd):
+    def send_text(self, cmd, prefix="", postfix=""):
+        print('send_text', cmd)
         cmd = cmd.rstrip()
         cmd = cmd.expandtabs(self.view.settings().get("tab_size", 4))
-        prog = self.prog.lower()
-        if prog == "terminal":
-            self.send_to_terminal(cmd)
-        elif prog == "iterm":
-            self.send_to_iterm(cmd)
-        elif prog == "cmder":
-            self.send_to_cmder(cmd)
-        elif prog == "conemu":
-            self.send_to_conemu(cmd)
-        elif prog == "linux-terminal":
-            self.send_to_linux_terminal(cmd)
-        elif prog == "tmux":
-            self.send_to_tmux(cmd)
-        elif prog == "screen":
-            self.send_to_screen(cmd)
-        elif prog == "chrome-jupyter":
-            self.send_to_chrome_jupyter(cmd)
-        elif prog == "safari-jupyter":
-            self.send_to_safari_jupyter(cmd)
-        elif prog == "sublimerepl":
-            self.send_to_sublimerepl(cmd)
-        elif prog == "terminalview":
-            self.send_to_terminalview(cmd)
-        elif prog == "terminus":
-            self.send_to_terminus(cmd)
-        elif prog == "rstudio":
-            self.send_to_rstudio(cmd)
-        else:
-            sublime.message_dialog("%s is not supported for current syntax." % prog)
+        self.send_to_iterm(cmd, prefix, postfix)
 
 
 class RCodeSender(CodeSender):

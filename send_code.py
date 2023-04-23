@@ -86,6 +86,7 @@ class SendCodeCommand(sublime_plugin.TextCommand):
     def run(self, edit, advance=None, cell=False, cmd=None, prog=None, confirmation=None,
             prefix="", postfix="", setup=False):
         print('SendCode.run', prefix, postfix)
+        is_rcall = self.view.score_selector(self.view.sel()[0].begin(), "rcall.julia")
         
         if advance is None:
             advance = Settings(self.view).get("auto_advance", True)
@@ -134,13 +135,22 @@ class SendCodeCommand(sublime_plugin.TextCommand):
                 getter = CodeGetter.initialize(self.view, advance=advance, cell=cell, setup=setup)
                 cmd = getter.get_text()
 
-        if postfix:
-            cmd = cmd.rstrip()
-        cmd = prefix + cmd + postfix
-        if prefix in ['?', ';']:
-            sender.bracketed_paste_mode = False
+        cmd = cmd.strip()
 
-        sublime.set_timeout_async(lambda: sender.send_text(cmd))
+        if is_rcall:
+            prefix = '$'
+            postfix = '\n\x7f'
+            if '\n' in cmd:
+                prefix += '{'
+                postfix = '}' + postfix
+
+        # if postfix:
+        #     cmd = cmd.rstrip()
+        # cmd = prefix + cmd + postfix
+        # if prefix in ['?', ';']:
+        #     sender.bracketed_paste_mode = False
+
+        sublime.set_timeout_async(lambda: sender.send_text(cmd, prefix, postfix))
 
 
 # historial reason

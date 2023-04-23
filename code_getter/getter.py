@@ -190,17 +190,16 @@ class CodeGetter:
 
 class RCodeGetter(CodeGetter):
 
-    def expand_rcall(self, s):
-        print('expand_rcall', s)
-        s = self.view.expand_to_scope(s.begin(), 'rcall.julia')
-        print('expand_rcall', s)
-        return s
+    def expand_cell(self, s):
+        if self.view.score_selector(s.begin(), "rcall.julia"):
+            return self.view.expand_to_scope(s.begin(), 'rcall.julia')
+        else:
+            return super().expand_cell(s)
 
     def expand_line(self, s):
-
         view = self.view
-        if view.score_selector(s.begin(), "rcall.julia"):
-            return self.expand_rcall(s)
+        # if view.score_selector(s.begin(), "rcall.julia"):
+            # return self.expand_rcall(s)
 
         if view.score_selector(s.begin(), "string"):
             return s
@@ -311,7 +310,9 @@ class JuliaCodeGetter(CodeGetter):
     def expand_line(self, s):
         view = self.view
         if view.score_selector(s.begin(), "string"):
-            return s
+            print('yes')
+            return self.view.expand_to_scope(s.begin(), 'string')
+
         thiscmd = view.substr(s)
         row = view.rowcol(s.begin())[0]
         prevline = view.line(s.begin())
