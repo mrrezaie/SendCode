@@ -46,7 +46,6 @@ class CodeSender:
         if len(re.findall("\n", cmd)) > 0:
             cmd = "\x1b[200~" + cmd + "\x1b[201~"
         cmd = prefix + cmd + postfix
-        print(cmd)
 
         self.view.window().run_command("term_send_text",
             {"text": cmd, "end": "" if postfix else "\n"})
@@ -99,10 +98,11 @@ class PythonCodeSender(CodeSender):
         else:
             send_to_terminal(cmd)
 
-    def send_to_iterm(self, cmd):
+    def send_to_iterm(self, cmd, prefix="", postfix=""):
         if len(re.findall("\n", cmd)) > 0:
-            cmd = "\x1b[200~" + cmd + "\n\x1b[201~"
-        self.view.window().run_command("term_send_text", {"text": cmd})
+            cmd += '\n'
+        super().send_to_iterm(cmd, prefix, postfix)
+
 
     # def send_to_iterm(self, cmd):
     #     if len(re.findall("\n", cmd)) > 0:

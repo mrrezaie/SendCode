@@ -142,7 +142,7 @@ class SendCodeCommand(sublime_plugin.TextCommand):
             postfix = '\n\x7f'
             if '\n' in cmd:
                 prefix += '{'
-                postfix = '}' + postfix
+                postfix = '\n}' + postfix
 
         # if postfix:
         #     cmd = cmd.rstrip()
