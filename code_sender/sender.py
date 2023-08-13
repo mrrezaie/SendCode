@@ -51,7 +51,6 @@ class CodeSender:
             {"text": cmd, "end": "" if postfix else "\n"})
 
     def send_text(self, cmd, prefix="", postfix=""):
-        print('send_text', cmd)
         cmd = cmd.rstrip()
         cmd = cmd.expandtabs(self.view.settings().get("tab_size", 4))
         self.send_to_iterm(cmd, prefix, postfix)

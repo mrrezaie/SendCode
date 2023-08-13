@@ -191,15 +191,14 @@ class CodeGetter:
 class RCodeGetter(CodeGetter):
 
     def expand_cell(self, s):
-        if self.view.score_selector(s.begin(), "rcall.julia"):
-            return self.view.expand_to_scope(s.begin(), 'rcall.julia')
-        else:
-            return super().expand_cell(s)
+        s = self.view.expand_to_scope(s.begin(), 'rcall.julia')
+        return s
 
     def expand_line(self, s):
+
         view = self.view
         # if view.score_selector(s.begin(), "rcall.julia"):
-            # return self.expand_rcall(s)
+        #     return self.expand_cell(s)
 
         if view.score_selector(s.begin(), "string"):
             return s
@@ -310,10 +309,9 @@ class JuliaCodeGetter(CodeGetter):
     def expand_line(self, s):
         view = self.view
         if view.score_selector(s.begin(), "string"):
-            print('yes')
-            return self.view.expand_to_scope(s.begin(), 'string')
-
+            return s
         thiscmd = view.substr(s)
+        print("thiscmd", thiscmd)
         row = view.rowcol(s.begin())[0]
         prevline = view.line(s.begin())
         lastrow = view.rowcol(view.size())[0]
@@ -354,9 +352,25 @@ class JuliaCodeGetter(CodeGetter):
                     s = sublime.Region(s.begin(), line.end())
                     break
 
+        elif re.match(r"\s*\bend\b", thiscmd):
+            # find the beginning of this block
+            indent = len(re.match(r"^(\s*)", thiscmd).group(1))
+            row = view.rowcol(s.begin())[0]
+            while row > 0:
+                row = row - 1
+                line = view.line(view.text_point(row, 0))
+                this_indent = len(view.substr(line)) - len(view.substr(line).lstrip(' '))
+
+                linestr = view.substr(line)
+                print('-> |{linestr}| ({this_indent})'.format_map(locals()))
+
+                start = line
+                if this_indent <= indent and not re.match(r"\s*(elseif|else)", linestr):
+                    break
+            s = sublime.Region(start.begin(), s.end())
+
         else:
             s = self.forward_expand(s, pattern=r"[+\-*/](?=\s*$)")
-
         return s
 
 

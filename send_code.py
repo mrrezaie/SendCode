@@ -137,7 +137,7 @@ class SendCodeCommand(sublime_plugin.TextCommand):
 
         cmd = cmd.strip()
 
-        if is_rcall:
+        if is_rcall and not cmd.startswith('include('):
             prefix = '$'
             postfix = '\n\x7f'
             if '\n' in cmd:
