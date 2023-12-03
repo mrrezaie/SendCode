@@ -16,7 +16,7 @@ from .safari import send_to_safari_jupyter, send_to_safari_rstudio
 from .sublimerepl import send_to_sublimerepl
 from .terminalview import send_to_terminalview
 from .terminus import send_to_terminus
-
+from .clipboard import clipboard
 
 class CodeSender:
 
@@ -201,26 +201,54 @@ class PythonCodeSender(CodeSender):
         else:
             send_to_terminalview(cmd)
 
+    # def send_to_terminus(self, cmd):
+    #     if len(re.findall("\n", cmd)) > 0:
+    #         if self.bracketed_paste_mode:
+    #             if sublime.platform() == "windows":
+    #                 send_to_terminus(cmd, bracketed=False, commit=False)
+    #                 time.sleep(0.05)
+    #                 send_to_terminus("\x1B", bracketed=False)
+    #             else:
+    #                 send_to_terminus(cmd, bracketed=True, commit=False)
+    #                 time.sleep(0.05)
+    #                 send_to_terminus("\x1B", bracketed=False)
+    #         else:
+    #             send_to_terminus(r"%cpaste -q")
+    #             send_to_terminus(cmd)
+    #             send_to_terminus("--")
+    #     else:
+    #         if sublime.platform() == "windows":
+    #             send_to_terminus(cmd, bracketed=False, commit=False)
+    #             time.sleep(0.05)
+    #             send_to_terminus("\r", bracketed=False)
+    #         else:
+    #             send_to_terminus(cmd, bracketed=False)
+
+    def paste_to_console(self):
+        value = self.settings.get("paste_to_console", None)
+        if value is None:
+            value = self.settings.get("ctrl+v_to_console", None)
+        return value
+
     def send_to_terminus(self, cmd):
-        if len(re.findall("\n", cmd)) > 0:
-            if self.bracketed_paste_mode:
-                if sublime.platform() == "windows":
-                    send_to_terminus(cmd, bracketed=False, commit=False)
-                    time.sleep(0.05)
-                    send_to_terminus("\x1B", bracketed=False)
-                else:
-                    send_to_terminus(cmd, bracketed=True, commit=False)
-                    time.sleep(0.05)
-                    send_to_terminus("\x1B", bracketed=False)
-            else:
-                send_to_terminus(r"%cpaste -q")
-                send_to_terminus(cmd)
-                send_to_terminus("--")
+        if sublime.platform() == "windows" and self.paste_to_console:
+            clipboard.set_clipboard(cmd)
+            # send ctrl+v
+            send_to_terminus("\x16", bracketed=False, commit=False)
+            time.sleep(0.05)
+            send_to_terminus("\x1b", bracketed=False, commit=False)
+            time.sleep(0.2)
+            send_to_terminus("\r", bracketed=False, commit=False)
+            clipboard.reset_clipboard()
         else:
-            if sublime.platform() == "windows":
-                send_to_terminus(cmd, bracketed=False, commit=False)
-                time.sleep(0.05)
-                send_to_terminus("\r", bracketed=False)
+            if len(re.findall("\n", cmd)) > 0:
+                if self.bracketed_paste_mode:
+                    send_to_terminus(cmd, bracketed=True, commit=False)
+                    send_to_terminus("\x1b", bracketed=False)
+                else:
+                    send_to_terminus(r"%cpaste -q")
+                    send_to_terminus(cmd)
+                    send_to_terminus("--")
             else:
                 send_to_terminus(cmd, bracketed=False)
 
