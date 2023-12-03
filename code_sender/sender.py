@@ -3,18 +3,18 @@ import re
 import time
 
 from ..settings import Settings
-from .terminal import send_to_terminal
-from .iterm import send_to_iterm
-from .r import send_to_r
-from .rstudio import send_to_rstudio
-from .conemu import send_to_conemu, send_to_cmder
-from .linux import send_to_linux_terminal
-from .tmux import send_to_tmux
-from .screen import send_to_screen
-from .chrome import send_to_chrome_jupyter, send_to_chrome_rstudio
-from .safari import send_to_safari_jupyter, send_to_safari_rstudio
-from .sublimerepl import send_to_sublimerepl
-from .terminalview import send_to_terminalview
+# from .terminal import send_to_terminal
+# from .iterm import send_to_iterm
+# from .r import send_to_r
+# from .rstudio import send_to_rstudio
+# from .conemu import send_to_conemu, send_to_cmder
+# from .linux import send_to_linux_terminal
+# from .tmux import send_to_tmux
+# from .screen import send_to_screen
+# from .chrome import send_to_chrome_jupyter, send_to_chrome_rstudio
+# from .safari import send_to_safari_jupyter, send_to_safari_rstudio
+# from .sublimerepl import send_to_sublimerepl
+# from .terminalview import send_to_terminalview
 from .terminus import send_to_terminus
 from .clipboard import clipboard
 
@@ -42,13 +42,13 @@ class CodeSender:
         else:
             return CodeSender(view, **kwargs)
 
-    def send_to_iterm(self, cmd, prefix="", postfix=""):
-        if len(re.findall("\n", cmd)) > 0:
-            cmd = "\x1b[200~" + cmd + "\x1b[201~"
-        cmd = prefix + cmd + postfix
+    # def send_to_iterm(self, cmd, prefix="", postfix=""):
+    #     if len(re.findall("\n", cmd)) > 0:
+    #         cmd = "\x1b[200~" + cmd + "\x1b[201~"
+    #     cmd = prefix + cmd + postfix
 
-        self.view.window().run_command("term_send_text",
-            {"text": cmd, "end": "" if postfix else "\n"})
+    #     self.view.window().run_command("term_send_text",
+    #         {"text": cmd, "end": "" if postfix else "\n"})
 
     def send_text(self, cmd, prefix="", postfix=""):
         cmd = cmd.rstrip()
@@ -84,23 +84,23 @@ class RCodeSender(CodeSender):
 
 class PythonCodeSender(CodeSender):
 
-    def send_to_terminal(self, cmd):
-        if len(re.findall("\n", cmd)) > 0:
-            if self.bracketed_paste_mode:
-                send_to_terminal(cmd, bracketed=True)
-                time.sleep(0.01)
-                send_to_terminal("\x1B", bracketed=False)
-            else:
-                send_to_terminal(r"%cpaste -q")
-                send_to_terminal(cmd)
-                send_to_terminal("--")
-        else:
-            send_to_terminal(cmd)
+    # def send_to_terminal(self, cmd):
+    #     if len(re.findall("\n", cmd)) > 0:
+    #         if self.bracketed_paste_mode:
+    #             send_to_terminal(cmd, bracketed=True)
+    #             time.sleep(0.01)
+    #             send_to_terminal("\x1B", bracketed=False)
+    #         else:
+    #             send_to_terminal(r"%cpaste -q")
+    #             send_to_terminal(cmd)
+    #             send_to_terminal("--")
+    #     else:
+    #         send_to_terminal(cmd)
 
-    def send_to_iterm(self, cmd, prefix="", postfix=""):
-        if len(re.findall("\n", cmd)) > 0:
-            cmd += '\n'
-        super().send_to_iterm(cmd, prefix, postfix)
+    # def send_to_iterm(self, cmd, prefix="", postfix=""):
+    #     if len(re.findall("\n", cmd)) > 0:
+    #         cmd += '\n'
+    #     super().send_to_iterm(cmd, prefix, postfix)
 
 
     # def send_to_iterm(self, cmd):
@@ -120,86 +120,86 @@ class PythonCodeSender(CodeSender):
     #     else:
     #         send_to_iterm(cmd)
 
-    def send_to_conemu(self, cmd):
-        conemuc = self.settings.get("conemuc")
-        if len(re.findall("\n", cmd)) > 0:
-            if self.bracketed_paste_mode:
-                send_to_conemu(cmd, conemuc, bracketed=False, commit=False)
-                time.sleep(0.05)
-                send_to_conemu("\x1B", conemuc, bracketed=False)
-            else:
-                send_to_conemu(r"%cpaste -q", conemuc)
-                send_to_conemu(cmd, conemuc)
-                send_to_conemu("--", conemuc)
-        else:
-            send_to_conemu(cmd, conemuc)
+    # def send_to_conemu(self, cmd):
+    #     conemuc = self.settings.get("conemuc")
+    #     if len(re.findall("\n", cmd)) > 0:
+    #         if self.bracketed_paste_mode:
+    #             send_to_conemu(cmd, conemuc, bracketed=False, commit=False)
+    #             time.sleep(0.05)
+    #             send_to_conemu("\x1B", conemuc, bracketed=False)
+    #         else:
+    #             send_to_conemu(r"%cpaste -q", conemuc)
+    #             send_to_conemu(cmd, conemuc)
+    #             send_to_conemu("--", conemuc)
+    #     else:
+    #         send_to_conemu(cmd, conemuc)
 
-    def send_to_cmder(self, cmd):
-        conemuc = self.settings.get("conemuc")
-        if len(re.findall("\n", cmd)) > 0:
-            if self.bracketed_paste_mode:
-                send_to_cmder(cmd, conemuc, bracketed=False, commit=False)
-                time.sleep(0.05)
-                send_to_cmder("\x1B", conemuc, bracketed=False)
-            else:
-                send_to_cmder(r"%cpaste -q", conemuc)
-                send_to_cmder(cmd, conemuc)
-                send_to_cmder("--", conemuc)
-        else:
-            send_to_cmder(cmd, conemuc)
+    # def send_to_cmder(self, cmd):
+    #     conemuc = self.settings.get("conemuc")
+    #     if len(re.findall("\n", cmd)) > 0:
+    #         if self.bracketed_paste_mode:
+    #             send_to_cmder(cmd, conemuc, bracketed=False, commit=False)
+    #             time.sleep(0.05)
+    #             send_to_cmder("\x1B", conemuc, bracketed=False)
+    #         else:
+    #             send_to_cmder(r"%cpaste -q", conemuc)
+    #             send_to_cmder(cmd, conemuc)
+    #             send_to_cmder("--", conemuc)
+    #     else:
+    #         send_to_cmder(cmd, conemuc)
 
-    def send_to_linux_terminal(self, cmd):
-        linux_terminal = self.settings.get("linux_terminal")
+    # def send_to_linux_terminal(self, cmd):
+    #     linux_terminal = self.settings.get("linux_terminal")
 
-        if len(re.findall("\n", cmd)) > 0:
-            if self.bracketed_paste_mode:
-                send_to_linux_terminal(linux_terminal, [cmd, ""])
-            else:
-                send_to_linux_terminal(linux_terminal, [r"%cpaste -q", cmd, "--"])
-        else:
-            send_to_linux_terminal(linux_terminal, cmd)
+    #     if len(re.findall("\n", cmd)) > 0:
+    #         if self.bracketed_paste_mode:
+    #             send_to_linux_terminal(linux_terminal, [cmd, ""])
+    #         else:
+    #             send_to_linux_terminal(linux_terminal, [r"%cpaste -q", cmd, "--"])
+    #     else:
+    #         send_to_linux_terminal(linux_terminal, cmd)
 
-    def send_to_tmux(self, cmd):
-        tmux = self.settings.get("tmux", "tmux")
-        if len(re.findall("\n", cmd)) > 0:
-            if self.bracketed_paste_mode:
-                send_to_tmux(cmd, tmux, bracketed=True, commit=False)
-                time.sleep(0.01)
-                send_to_tmux("\x1B", tmux, bracketed=False)
-            else:
-                send_to_tmux(r"%cpaste -q", tmux)
-                send_to_tmux(cmd, tmux)
-                # send ctrl-D instead of "--" since `set-buffer` does not work properly
-                send_to_tmux("\x04", tmux)
-        else:
-            send_to_tmux(cmd, tmux)
+    # def send_to_tmux(self, cmd):
+    #     tmux = self.settings.get("tmux", "tmux")
+    #     if len(re.findall("\n", cmd)) > 0:
+    #         if self.bracketed_paste_mode:
+    #             send_to_tmux(cmd, tmux, bracketed=True, commit=False)
+    #             time.sleep(0.01)
+    #             send_to_tmux("\x1B", tmux, bracketed=False)
+    #         else:
+    #             send_to_tmux(r"%cpaste -q", tmux)
+    #             send_to_tmux(cmd, tmux)
+    #             # send ctrl-D instead of "--" since `set-buffer` does not work properly
+    #             send_to_tmux("\x04", tmux)
+    #     else:
+    #         send_to_tmux(cmd, tmux)
 
-    def send_to_screen(self, cmd):
-        screen = self.settings.get("screen", "screen")
-        if len(re.findall("\n", cmd)) > 0:
-            if self.bracketed_paste_mode:
-                send_to_screen(cmd, screen, bracketed=True, commit=False)
-                time.sleep(0.01)
-                send_to_screen("\x1B", screen, bracketed=False)
-            else:
-                send_to_screen(r"%cpaste -q", screen)
-                send_to_screen(cmd, screen)
-                send_to_screen("--", screen)
-        else:
-            send_to_screen(cmd, screen)
+    # def send_to_screen(self, cmd):
+    #     screen = self.settings.get("screen", "screen")
+    #     if len(re.findall("\n", cmd)) > 0:
+    #         if self.bracketed_paste_mode:
+    #             send_to_screen(cmd, screen, bracketed=True, commit=False)
+    #             time.sleep(0.01)
+    #             send_to_screen("\x1B", screen, bracketed=False)
+    #         else:
+    #             send_to_screen(r"%cpaste -q", screen)
+    #             send_to_screen(cmd, screen)
+    #             send_to_screen("--", screen)
+    #     else:
+    #         send_to_screen(cmd, screen)
 
-    def send_to_terminalview(self, cmd):
-        if len(re.findall("\n", cmd)) > 0:
-            if self.bracketed_paste_mode:
-                send_to_terminalview(cmd, bracketed=True)
-                time.sleep(0.05)
-                send_to_terminalview("\x1B", bracketed=False)
-            else:
-                send_to_terminalview(r"%cpaste -q")
-                send_to_terminalview(cmd)
-                send_to_terminalview("--")
-        else:
-            send_to_terminalview(cmd)
+    # def send_to_terminalview(self, cmd):
+    #     if len(re.findall("\n", cmd)) > 0:
+    #         if self.bracketed_paste_mode:
+    #             send_to_terminalview(cmd, bracketed=True)
+    #             time.sleep(0.05)
+    #             send_to_terminalview("\x1B", bracketed=False)
+    #         else:
+    #             send_to_terminalview(r"%cpaste -q")
+    #             send_to_terminalview(cmd)
+    #             send_to_terminalview("--")
+    #     else:
+    #         send_to_terminalview(cmd)
 
     # def send_to_terminus(self, cmd):
     #     if len(re.findall("\n", cmd)) > 0:

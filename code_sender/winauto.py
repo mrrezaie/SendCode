@@ -119,70 +119,70 @@ def find_window(title=None, classname=None):
         return window
 
 
-def find_rgui():
-    rgui = find_window(r"R Console.*", "Rgui")
-    if not rgui:
-        rgui = find_window(classname="Rgui Workspace")
-    if not rgui:
-        raise Exception("window not found.")
-    return rgui
+# def find_rgui():
+#     rgui = find_window(r"R Console.*", "Rgui")
+#     if not rgui:
+#         rgui = find_window(classname="Rgui Workspace")
+#     if not rgui:
+#         raise Exception("window not found.")
+#     return rgui
 
 
-def bring_rgui_to_top(rid):
-    BringWindowToTop(rid)
+# def bring_rgui_to_top(rid):
+#     BringWindowToTop(rid)
 
-    if get_class(rid) == "Rgui Workspace":
+#     if get_class(rid) == "Rgui Workspace":
 
-        def bring_child(hwnd, _):
-            if get_window_text(hwnd).startswith("R Console"):
-                BringWindowToTop(hwnd)
+#         def bring_child(hwnd, _):
+#             if get_window_text(hwnd).startswith("R Console"):
+#                 BringWindowToTop(hwnd)
 
-            return True
+#             return True
 
-        try:
-            enum_child_windows(rid, bring_child)
-        except Exception:
-            pass
-
-
-def paste_to_rgui(rid):
-    menu = GetMenu(rid)
-    if get_menu_item_text(menu, 0):
-        # non-fullscreen mdi mode
-        submenu = get_menu_item_info(menu, 1).hSubMenu
-    else:
-        # fullscreen mdi mode or sdi mode
-        submenu = get_menu_item_info(menu, 2).hSubMenu
-
-    pasteid = get_menu_item_info(submenu, 1).wID
-
-    PostMessage(rid, 7, pasteid, 0)  # set forcues
-    time.sleep(0.01)
-    PostMessage(rid, 273, pasteid, 0)  # click
-    time.sleep(0.01)
+#         try:
+#             enum_child_windows(rid, bring_child)
+#         except Exception:
+#             pass
 
 
-def find_rstudio():
-    rgui = find_window(r".*RStudio", "Qt5QWindowIcon")
-    if not rgui:
-        raise Exception("window not found.")
-    return rgui
+# def paste_to_rgui(rid):
+#     menu = GetMenu(rid)
+#     if get_menu_item_text(menu, 0):
+#         # non-fullscreen mdi mode
+#         submenu = get_menu_item_info(menu, 1).hSubMenu
+#     else:
+#         # fullscreen mdi mode or sdi mode
+#         submenu = get_menu_item_info(menu, 2).hSubMenu
+
+#     pasteid = get_menu_item_info(submenu, 1).wID
+
+#     PostMessage(rid, 7, pasteid, 0)  # set forcues
+#     time.sleep(0.01)
+#     PostMessage(rid, 273, pasteid, 0)  # click
+#     time.sleep(0.01)
 
 
-def paste_to_rstudio(rid, from_view=True):
-    time.sleep(0.01)
-    if not from_view:
-        keybd_event(18, 0, 2, 0)  # alt up
-        keybd_event(16, 0, 2, 0)  # shift up
-        time.sleep(0.01)
-        keybd_event(17, 0, 0, 0)  # ctrl down
-        time.sleep(0.01)
-    PostMessage(rid, 256, ord("V"), 0)
-    time.sleep(0.01)
-    if not from_view:
-        keybd_event(17, 0, 2, 0)  # ctrl up
-        time.sleep(0.01)
-    PostMessage(rid, 7, 0, 0)
-    time.sleep(0.01)
-    PostMessage(rid, 256, 13, 0)
-    time.sleep(0.01)
+# def find_rstudio():
+#     rgui = find_window(r".*RStudio", "Qt5QWindowIcon")
+#     if not rgui:
+#         raise Exception("window not found.")
+#     return rgui
+
+
+# def paste_to_rstudio(rid, from_view=True):
+#     time.sleep(0.01)
+#     if not from_view:
+#         keybd_event(18, 0, 2, 0)  # alt up
+#         keybd_event(16, 0, 2, 0)  # shift up
+#         time.sleep(0.01)
+#         keybd_event(17, 0, 0, 0)  # ctrl down
+#         time.sleep(0.01)
+#     PostMessage(rid, 256, ord("V"), 0)
+#     time.sleep(0.01)
+#     if not from_view:
+#         keybd_event(17, 0, 2, 0)  # ctrl up
+#         time.sleep(0.01)
+#     PostMessage(rid, 7, 0, 0)
+#     time.sleep(0.01)
+#     PostMessage(rid, 256, 13, 0)
+#     time.sleep(0.01)
