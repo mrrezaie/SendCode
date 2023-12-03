@@ -50,10 +50,13 @@ class CodeSender:
     #     self.view.window().run_command("term_send_text",
     #         {"text": cmd, "end": "" if postfix else "\n"})
 
+    def send_to_terminus(self, cmd):
+        send_to_terminus(cmd, bracketed=self.bracketed_paste_mode)
+        
     def send_text(self, cmd, prefix="", postfix=""):
         cmd = cmd.rstrip()
         cmd = cmd.expandtabs(self.view.settings().get("tab_size", 4))
-        self.send_to_iterm(cmd, prefix, postfix)
+        self.send_to_terminus(cmd)
 
 
 class RCodeSender(CodeSender):

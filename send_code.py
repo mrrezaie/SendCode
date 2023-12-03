@@ -150,7 +150,7 @@ class SendCodeCommand(sublime_plugin.TextCommand):
         # if prefix in ['?', ';']:
         #     sender.bracketed_paste_mode = False
 
-        sublime.set_timeout_async(lambda: sender.send_text(cmd, prefix, postfix))
+        sublime.set_timeout_async(lambda: sender.send_text(cmd))
 
 
 # historial reason
