@@ -227,20 +227,20 @@ class PythonCodeSender(CodeSender):
     #         else:
     #             send_to_terminus(cmd, bracketed=False)
 
-    def paste_to_console(self):
-        value = self.settings.get("paste_to_console", None)
-        if value is None:
-            value = self.settings.get("ctrl+v_to_console", None)
-        return value
+    # def paste_to_console(self):
+    #     value = self.settings.get("paste_to_console", None)
+    #     if value is None:
+    #         value = self.settings.get("ctrl+v_to_console", None)
+    #     return value
 
     def send_to_terminus(self, cmd):
-        if sublime.platform() == "windows" and self.paste_to_console:
+        if sublime.platform() == "windows": # and self.paste_to_console:
             clipboard.set_clipboard(cmd)
             # send ctrl+v
             send_to_terminus("\x16", bracketed=False, commit=False)
             time.sleep(0.05)
             send_to_terminus("\x1b", bracketed=False, commit=False)
-            time.sleep(0.2)
+            time.sleep(0.05)
             send_to_terminus("\r", bracketed=False, commit=False)
             clipboard.reset_clipboard()
         else:
